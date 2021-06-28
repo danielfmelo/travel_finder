@@ -53,6 +53,8 @@ func TestGetBestPrice(t *testing.T) {
 			name:               "test should return bad request",
 			expectedBody:       "",
 			path:               "",
+			ori:                "GRU",
+			dest:               "FLN",
 			expectedError:      errors.New("Not found"),
 			expectedStatusCode: http.StatusNotFound,
 			url:                "/origins/GRU/destinations/FLN",
@@ -63,14 +65,14 @@ func TestGetBestPrice(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			router := httprouter.New()
 			finder := &mocks.FinderMock{}
-			finder.CheapestRoute.Path = tc.path
-			finder.CheapestRoute.Value = tc.value
-			finder.FakeErr = tc.expectedError
-			ssm := &mocks.ServiceStorageMock{}
+			cheapestRoute := entity.CheapestRoute{
+				Path:  tc.path,
+				Value: tc.value,
+			}
 
-			rec := entity.Record{tc.ori, tc.dest, tc.val}
-			ssm.On("Save", rec).Return(nil).Once()
-			a := api.New(ssm, finder)
+			finder.On("GetSmallestPriceAndRoute", tc.ori, tc.dest).Return(cheapestRoute, tc.expectedError)
+
+			a := api.New(finder)
 			a.Handlers(router)
 
 			url := tc.url
@@ -88,7 +90,8 @@ func TestGetBestPrice(t *testing.T) {
 				assert.NoError(t, err)
 				err = json.Unmarshal(body, &cr)
 				assert.NoError(t, err)
-				assert.Equal(t, finder.CheapestRoute, cr)
+				assert.Equal(t, tc.value, cr.Value)
+				assert.Equal(t, tc.path, cr.Path)
 			}
 		})
 	}
@@ -121,7 +124,7 @@ func TestPostInsertRoute(t *testing.T) {
 			url:                "/origins/GRU/destinations//values/40",
 		},
 		{
-			name:               "test should return bad request",
+			name:               "test should return internal server error",
 			expectedError:      errors.New("Not found"),
 			expectedStatusCode: http.StatusInternalServerError,
 			url:                "/origins/GRU/destinations/FLN/values/40",
@@ -135,10 +138,9 @@ func TestPostInsertRoute(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			router := httprouter.New()
 			finder := &mocks.FinderMock{}
-			ssm := &mocks.ServiceStorageMock{}
 			rec := entity.Record{tc.ori, tc.dest, tc.val}
-			ssm.On("Save", rec).Return(tc.expectedError).Once()
-			a := api.New(ssm, finder)
+			finder.On("Save", rec).Return(tc.expectedError).Once()
+			a := api.New(finder)
 			a.Handlers(router)
 
 			url := tc.url

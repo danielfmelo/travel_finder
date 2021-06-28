@@ -39,7 +39,7 @@ func main() {
 	s := services.NewStorage(d)
 	listenerSub := listener.NewReader(s)
 	listenerSub.Start(writerQueue)
-	a := api.New(s, finder)
+	a := api.New(finder)
 	go c.Start()
 	a.Start()
 }

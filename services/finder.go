@@ -46,7 +46,7 @@ func (f *finder) Save(record entity.Record) error {
 		return err
 	}
 	f.graph.AddEdge(record.Origin, record.Destination, val)
-	//f.recordPub.Send(record)
+	f.recordPub.Send(record)
 	return nil
 }
 

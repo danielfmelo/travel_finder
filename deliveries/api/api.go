@@ -10,8 +10,7 @@ import (
 )
 
 type Api struct {
-	finderService  services.Finder
-	storageService services.Storage
+	finderService services.Finder
 }
 
 func (api *Api) Handlers(router *httprouter.Router) {
@@ -38,7 +37,6 @@ func (api *Api) insertRoute(w http.ResponseWriter, r *http.Request, ps httproute
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
-	return
 }
 
 func (api *Api) bestPrice(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
@@ -65,7 +63,6 @@ func (api *Api) bestPrice(w http.ResponseWriter, r *http.Request, ps httprouter.
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	return
 }
 
 func validateParams(params httprouter.Params) bool {
@@ -83,9 +80,8 @@ func (api *Api) Start() {
 	http.ListenAndServe(":8080", router)
 }
 
-func New(storageService services.Storage, finderService services.Finder) *Api {
+func New(finderService services.Finder) *Api {
 	return &Api{
-		storageService: storageService,
-		finderService:  finderService,
+		finderService: finderService,
 	}
 }

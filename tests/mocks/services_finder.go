@@ -1,23 +1,25 @@
 package mocks
 
-import "github.com/danielfmelo/travel_finder/entity"
+import (
+	"github.com/danielfmelo/travel_finder/entity"
+	"github.com/stretchr/testify/mock"
+)
 
 type FinderMock struct {
-	FakeErr       error
-	CheapestRoute entity.CheapestRoute
-	Value         int
-	Records       []entity.Record
+	mock.Mock
 }
 
-func (sm *FinderMock) Save(entity.Record) error {
-	return sm.FakeErr
+func (sm *FinderMock) Save(record entity.Record) error {
+	args := sm.Called(record)
+	return args.Error(0)
 }
 
 func (sm *FinderMock) GetSmallestPriceAndRoute(origin, destin string) (entity.CheapestRoute, error) {
-	return sm.CheapestRoute, sm.FakeErr
+	args := sm.Called(origin, destin)
+	return args.Get(0).(entity.CheapestRoute), args.Error(1)
 }
 
 func (sm *FinderMock) SaveAll(records []entity.Record) error {
-	sm.Records = records
-	return sm.FakeErr
+	args := sm.Called(records)
+	return args.Error(0)
 }
